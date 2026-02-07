@@ -8,3 +8,4 @@ pandas
 tldextract
 python-jose
 argon2-cffi
+python-dotenv
