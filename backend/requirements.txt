@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+scikit-learn
+shap
+joblib
+numpy
+pandas
+tldextract
+python-jose
+argon2-cffi

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PhishAI Scanner</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+  <div class="header">
+    <h2>🔍 PhishAI</h2>
+    <p class="subtitle">AI Phishing Detection</p>
+  </div>
+
+  <button id="scanBtn" class="primary">
+    Scan Current Site
+  </button>
+
+  <div id="errorBox" class="error hidden"></div>
+
+  <div id="result" class="hidden">
+
+    <!-- Verdict Card -->
+    <div id="statusBadge" class="badge">LOW</div>
+
+    <!-- URL Card -->
+    <div class="card">
+      <p class="label">Scanned URL</p>
+      <p id="urlText" class="url"></p>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics">
+      <div>
+        <p class="metric-label">Risk</p>
+        <p id="risk" class="metric-value"></p>
+      </div>
+      <div>
+        <p class="metric-label">Probability</p>
+        <p id="prob" class="metric-value"></p>
+      </div>
+    </div>
+
+    <!-- Why Flagged -->
+    <div class="flagged-box">
+      <p class="label">⚠️ Why flagged?</p>
+      <ul id="reasons"></ul>
+
+      <div class="tip">
+         <span id="tip"></span>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <button id="viewDetails" class="secondary">
+      View Full Report →
+    </button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

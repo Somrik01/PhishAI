@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "PhishAI - URL Scanner",
+  "description": "AI-powered phishing detection with explainable insights",
+  "version": "1.0",
+  "permissions": ["activeTab", "tabs", "storage"],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Scan URL with PhishAI"
+  }
+}

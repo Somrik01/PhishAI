@@ -1,0 +1,122 @@
+.auth-container {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #0f1b2d, #020617);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  width: 380px;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(20px);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+  text-align: center;
+}
+
+.logo {
+  color: white;
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: #cbd5f5;
+  margin-bottom: 6px;
+}
+
+.muted {
+  font-size: 14px;
+  color: #8b94b8;
+  margin-bottom: 25px;
+}
+
+.muted span {
+  color: #4f7cff;
+  cursor: pointer;
+}
+
+.social {
+  width: 100%;
+  background: #0b1220;
+  color: white;
+  border: 1px solid #1f2a44;
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.social:hover {
+  background: #111a33;
+}
+
+.social img {
+  width: 20px;
+}
+
+.divider {
+  margin: 20px 0;
+  color: #6b7280;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  height: 1px;
+  width: 40%;
+  background: #1f2937;
+  position: absolute;
+  top: 50%;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: #0b1220;
+  border: 1px solid #1f2a44;
+  color: white;
+}
+
+form input:focus {
+  outline: none;
+  border-color: #4f7cff;
+}
+
+.primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.primary:hover {
+  opacity: 0.9;
+}
+
+.auth-error {
+  background: #3b0d0d;
+  border: 1px solid red;
+  padding: 10px;
+  color: #ffb4b4;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+
