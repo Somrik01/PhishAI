@@ -9,3 +9,6 @@ tldextract
 python-jose
 argon2-cffi
 python-dotenv
+sqlalchemy
+passlib[bcrypt]
+requests
