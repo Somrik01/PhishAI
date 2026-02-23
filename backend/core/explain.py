@@ -1,41 +1,40 @@
-import shap
 import numpy as np
 from core.predictor import model, vectorizer
 
-# -------------------------------
-# SHAP Explainer Setup
-# -------------------------------
-background = vectorizer.transform(["https://example.com"])
-masker = shap.maskers.Independent(background)
-explainer = shap.LinearExplainer(model, masker)
 
-
-def extract_shap_tokens(url, top_k=5):
+def extract_top_tokens(url, top_k=5):
     """
-    Extract most influential URL tokens using SHAP
+    Extract important tokens based on model coefficients (lightweight alternative to SHAP)
     """
-    X = vectorizer.transform([url])
-    shap_values = explainer.shap_values(X)[0]
-    feature_names = vectorizer.get_feature_names_out()
+    try:
+        X = vectorizer.transform([url])
+        feature_names = vectorizer.get_feature_names_out()
 
-    url = url.lower()
-    idxs = np.argsort(np.abs(shap_values))[::-1]
+        # Get model weights (for LogisticRegression)
+        coefs = model.coef_[0]
 
-    tokens = []
-    for i in idxs:
-        token = feature_names[i]
-        if token in url and len(token) >= 3:
-            tokens.append(token)
-        if len(tokens) >= top_k:
-            break
+        # Multiply feature values with weights
+        scores = X.toarray()[0] * coefs
 
-    return tokens
+        idxs = np.argsort(np.abs(scores))[::-1]
+
+        tokens = []
+        for i in idxs:
+            token = feature_names[i]
+            if token in url.lower() and len(token) >= 3:
+                tokens.append(token)
+            if len(tokens) >= top_k:
+                break
+
+        return tokens
+
+    except Exception:
+        return []
 
 
 def generate_explanation(url, probability, decision, reasons, features):
     """
-    Merge ML confidence + rule-based reasons + SHAP tokens
-    into ONE explainable paragraph
+    Generate human-readable explanation without SHAP
     """
 
     explanation = []
@@ -45,11 +44,11 @@ def generate_explanation(url, probability, decision, reasons, features):
     # -------------------------------
     if decision == "SUSPICIOUS":
         explanation.append(
-            f"The scanned URL was identified as potentially malicious based on learned phishing patterns."
+            "The scanned URL was identified as potentially malicious based on learned phishing patterns."
         )
     else:
         explanation.append(
-            f"The scanned URL does not strongly match known phishing patterns."
+            "The scanned URL does not strongly match known phishing patterns."
         )
 
     # -------------------------------
@@ -77,14 +76,14 @@ def generate_explanation(url, probability, decision, reasons, features):
         )
 
     # -------------------------------
-    # SHAP-based explanations
+    # Token-based explanation (replacement for SHAP)
     # -------------------------------
-    shap_tokens = extract_shap_tokens(url)
-    if shap_tokens:
+    tokens = extract_top_tokens(url)
+    if tokens:
         explanation.append(
-            "The AI model focused on URL components such as "
-            + ", ".join(shap_tokens)
-            + " which are commonly abused in phishing attacks."
+            "The model focused on URL components such as "
+            + ", ".join(tokens)
+            + " which are commonly used in phishing attempts."
         )
 
     # -------------------------------
