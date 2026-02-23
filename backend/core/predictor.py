@@ -6,11 +6,20 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "model", "phishai_model.pkl")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "model", "tfidf_vectorizer.pkl")
 
-model = joblib.load(MODEL_PATH)
-vectorizer = joblib.load(VECTORIZER_PATH)
+model = None
+vectorizer = None
+
+def load_model():
+    global model, vectorizer
+    if model is None or vectorizer is None:
+        model = joblib.load(MODEL_PATH)
+        vectorizer = joblib.load(VECTORIZER_PATH)
 
 def predict_url(url: str):
+    load_model()  # lazy load here
+
     X = vectorizer.transform([url])
     prob = model.predict_proba(X)[0][1]
     label = "PHISHING" if prob > 0.5 else "BENIGN"
+
     return prob, label
