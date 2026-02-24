@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import "./Login.css";
 
+const API_BASE = "https://phishai-dt1h.onrender.com";
+
 function extractError(data) {
   if (typeof data === "string") return data;
   if (data?.detail) {
@@ -33,8 +35,8 @@ export default function Login() {
 
     try {
       const url = isRegister
-        ? "http://127.0.0.1:8000/auth/register"
-        : "http://127.0.0.1:8000/auth/login";
+        ? `${API_BASE}/auth/register`
+        : `${API_BASE}/auth/login`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -46,7 +48,7 @@ export default function Login() {
       if (!res.ok) throw data;
 
       if (isRegister) {
-        const loginRes = await fetch("http://127.0.0.1:8000/auth/login", {
+        const loginRes = await fetch(`${API_BASE}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password }),
@@ -91,7 +93,7 @@ export default function Login() {
         <GoogleLogin
           onSuccess={async res => {
             try {
-              const r = await fetch("http://127.0.0.1:8000/auth/google", {
+              const r = await fetch(`${API_BASE}/auth/google`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token: res.credential })
