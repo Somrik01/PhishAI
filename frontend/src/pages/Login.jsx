@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import "./Login.css";
 
-const API_BASE = "https://phishai-dt1h.onrender.com";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 function extractError(data) {
   if (typeof data === "string") return data;
@@ -25,6 +25,7 @@ export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,21 +48,7 @@ export default function Login() {
       const data = await res.json();
       if (!res.ok) throw data;
 
-      if (isRegister) {
-        const loginRes = await fetch(`${API_BASE}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
-        });
-
-        const loginData = await loginRes.json();
-        if (!loginRes.ok) throw loginData;
-
-        login(loginData.access_token, username);
-      } else {
-        login(data.access_token, username);
-      }
-
+      login(data.access_token, username);
       navigate("/");
     } catch (err) {
       setError(extractError(err));
@@ -90,26 +77,29 @@ export default function Login() {
 
         {error && <div className="auth-error">{error}</div>}
 
-        <GoogleLogin
-          onSuccess={async res => {
-            try {
-              const r = await fetch(`${API_BASE}/auth/google`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token: res.credential })
-              });
+        {/* ✅ CENTERED GOOGLE BUTTON */}
+        <div className="google-wrapper">
+          <GoogleLogin
+            onSuccess={async res => {
+              try {
+                const r = await fetch(`${API_BASE}/auth/google`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ token: res.credential })
+                });
 
-              const data = await r.json();
-              if (!r.ok) throw data;
+                const data = await r.json();
+                if (!r.ok) throw data;
 
-              login(data.access_token);
-              navigate("/");
-            } catch (e) {
-              setError(extractError(e));
-            }
-          }}
-          onError={() => setError("Google sign-in failed")}
-        />
+                login(data.access_token);
+                navigate("/");
+              } catch (e) {
+                setError(extractError(e));
+              }
+            }}
+            onError={() => setError("Google sign-in failed")}
+          />
+        </div>
 
         <div className="divider">OR</div>
 
@@ -121,24 +111,23 @@ export default function Login() {
             required
           />
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          {/* ✅ PASSWORD WITH TOGGLE */}
+          <div className="password-field">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span onClick={() => setShowPassword(!showPassword)}>
+              {showPassword ? "🙈" : "👁️"}
+            </span>
+          </div>
 
           {!isRegister && (
             <p
-              style={{
-                textAlign: "right",
-                color: "#4f7cff",
-                cursor: "pointer",
-                fontSize: "14px",
-                marginTop: "-6px",
-                marginBottom: "14px"
-              }}
+              className="forgot"
               onClick={() => navigate("/forgot-password")}
             >
               Forgot password?
