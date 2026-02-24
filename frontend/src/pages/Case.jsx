@@ -1,14 +1,15 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../auth/AuthContext";
-
 export default function Case() {
   const { id } = useParams();
   const { token } = useContext(AuthContext);
   const [data, setData] = useState(null);
 
+  const API = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/case/${id}`, {
+    fetch(`${API}/case/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

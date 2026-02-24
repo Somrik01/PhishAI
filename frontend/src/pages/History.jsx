@@ -1,15 +1,15 @@
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
-
 export default function History() {
   const { token, logout } = useContext(AuthContext);
   const [cases, setCases] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const API = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/cases", {
+    fetch(`${API}/cases`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { generateThreatIntel } from "../ThreatIntel";
-
+const API = import.meta.env.VITE_API_URL;
 export default function ThreatIntel() {
   const [url, setUrl] = useState("");
   const [intel, setIntel] = useState(null);

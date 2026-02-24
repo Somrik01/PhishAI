@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthContext } from "../auth/AuthContext";
 import "../App.css";
-
+const API = import.meta.env.VITE_API_URL;
 export default function Scan() {
   const { token } = useContext(AuthContext); // 🔥 THIS WAS MISSING
 
@@ -34,7 +34,7 @@ export default function Scan() {
 
   /* ---------------- API ---------------- */
   const scanSingle = async (targetUrl, setTarget) => {
-    const response = await fetch("http://127.0.0.1:8000/scan", {
+    const response = await fetch(`${API}/scan`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
