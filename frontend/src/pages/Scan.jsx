@@ -34,6 +34,7 @@ export default function Scan() {
 
   /* ---------------- API ---------------- */
   const scanSingle = async (targetUrl, setTarget) => {
+    console.log("TOKEN:", token);
     const response = await fetch(`${API}/scan`, {
       method: "POST",
       headers: {
