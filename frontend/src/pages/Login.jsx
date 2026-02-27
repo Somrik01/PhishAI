@@ -6,18 +6,6 @@ import "./Login.css";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
-function extractError(data) {
-  if (typeof data === "string") return data;
-  if (data?.detail) {
-    if (Array.isArray(data.detail)) {
-      return data.detail.map(e => e.msg).join(", ");
-    }
-    return data.detail;
-  }
-  if (data?.message) return data.message;
-  return "Something went wrong";
-}
-
 export default function Login() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -26,8 +14,8 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +39,7 @@ export default function Login() {
       login(data.access_token, username);
       navigate("/");
     } catch (err) {
-      setError(extractError(err));
+      setError(err?.detail || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -64,12 +52,12 @@ export default function Login() {
         <h1 className="logo">PhishAI</h1>
 
         <p className="subtitle">
-          {isRegister ? "Create your account" : "Sign in to your account"}
+          {isRegister ? "Create account" : "Sign in to your account"}
         </p>
 
         <p className="muted">
           {isRegister ? (
-            <>Already have an account? <span onClick={() => setIsRegister(false)}>Log in</span></>
+            <>Already have an account? <span onClick={() => setIsRegister(false)}>Login</span></>
           ) : (
             <>Don’t have an account? <span onClick={() => setIsRegister(true)}>Create one</span></>
           )}
@@ -77,27 +65,20 @@ export default function Login() {
 
         {error && <div className="auth-error">{error}</div>}
 
-        {/* ✅ CENTERED GOOGLE BUTTON */}
+        {/* FIXED GOOGLE BUTTON */}
         <div className="google-wrapper">
           <GoogleLogin
-            onSuccess={async res => {
-              try {
-                const r = await fetch(`${API_BASE}/auth/google`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ token: res.credential })
-                });
+            onSuccess={async (res) => {
+              const r = await fetch(`${API_BASE}/auth/google`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: res.credential }),
+              });
 
-                const data = await r.json();
-                if (!r.ok) throw data;
-
-                login(data.access_token);
-                navigate("/");
-              } catch (e) {
-                setError(extractError(e));
-              }
+              const data = await r.json();
+              login(data.access_token);
+              navigate("/");
             }}
-            onError={() => setError("Google sign-in failed")}
           />
         </div>
 
@@ -111,8 +92,8 @@ export default function Login() {
             required
           />
 
-          {/* ✅ PASSWORD WITH TOGGLE */}
-          <div className="password-field">
+          {/* PASSWORD WITH EYE FIX */}
+          <div className="password-box">
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
@@ -121,26 +102,20 @@ export default function Login() {
               required
             />
             <span onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? "🙈" : "👁️"}
+              {showPassword ? "🙈" : "👁"}
             </span>
           </div>
 
           {!isRegister && (
-            <p
-              className="forgot"
-              onClick={() => navigate("/forgot-password")}
-            >
+            <p className="forgot" onClick={() => navigate("/forgot-password")}>
               Forgot password?
             </p>
           )}
 
           <button className="primary" disabled={loading}>
-            {loading
-              ? isRegister ? "Creating..." : "Signing in..."
-              : isRegister ? "Create account" : "Sign in"}
+            {loading ? "Loading..." : isRegister ? "Create Account" : "Sign In"}
           </button>
         </form>
-
       </div>
     </div>
   );
