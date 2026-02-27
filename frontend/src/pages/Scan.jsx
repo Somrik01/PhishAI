@@ -2,7 +2,6 @@ import { useEffect, useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthContext } from "../auth/AuthContext";
 import "../App.css";
-const API = import.meta.env.VITE_API_URL;
 export default function Scan() {
   const { token } = useContext(AuthContext); // 🔥 THIS WAS MISSING
 
@@ -18,6 +17,7 @@ export default function Scan() {
   const [scanTime, setScanTime] = useState(null);
 
   const [openAccordion, setOpenAccordion] = useState(null);
+  const API = import.meta.env.VITE_API_URL || "https://phishai-dt1h.onrender.com";
 
   /* ---------------- HELPERS ---------------- */
   const normalizeUrl = (input) =>

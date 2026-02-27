@@ -6,8 +6,8 @@ export const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const API = import.meta.env.VITE_API_URL || "https://phishai-dt1h.onrender.com";
 
-const API = import.meta.env.VITE_API_URL;
 
 useEffect(() => {
   if (token) {
