@@ -1,29 +1,37 @@
 import { createContext, useContext, useState, useEffect } from "react";
-/* Create Context */
+
 export const AuthContext = createContext();
 
-/* Provider */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(null);
+
   const API = import.meta.env.VITE_API_URL || "https://phishai-dt1h.onrender.com";
 
+  // 🔥 Load token AFTER mount (fix for Vercel issue)
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+    }
+  }, []);
 
-useEffect(() => {
-  if (token) {
-    fetch(`${API}/auth/me`, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => setUser(data))
-      .catch(() => {
-        console.warn("Invalid token – logging out");
-        setUser(null);
-      });
-  }
-}, [token]);
+  // 🔥 Validate token
+  useEffect(() => {
+    if (token) {
+      fetch(`${API}/auth/me`, {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(data => setUser(data))
+        .catch(() => {
+          console.warn("Invalid token – logging out");
+          logout();
+        });
+    }
+  }, [token]);
 
   const login = (jwt) => {
     localStorage.setItem("token", jwt);
@@ -44,7 +52,6 @@ useEffect(() => {
   );
 }
 
-/* Hook */
 export function useAuth() {
   return useContext(AuthContext);
 }

@@ -1,9 +1,10 @@
-import { useEffect, useState, useContext } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useContext } from "react";
+import { motion } from "framer-motion";
 import { AuthContext } from "../auth/AuthContext";
 import "../App.css";
+
 export default function Scan() {
-  const { token } = useContext(AuthContext); // 🔥 THIS WAS MISSING
+  const { token } = useContext(AuthContext);
 
   const [url, setUrl] = useState("");
   const [url2, setUrl2] = useState("");
@@ -16,10 +17,12 @@ export default function Scan() {
   const [error, setError] = useState("");
   const [scanTime, setScanTime] = useState(null);
 
-  const [openAccordion, setOpenAccordion] = useState(null);
-  const API = import.meta.env.VITE_API_URL || "https://phishai-dt1h.onrender.com";
+  const API =
+    import.meta.env.VITE_API_URL ||
+    "https://phishai-dt1h.onrender.com";
 
   /* ---------------- HELPERS ---------------- */
+
   const normalizeUrl = (input) =>
     input.startsWith("http") ? input : "https://" + input;
 
@@ -29,24 +32,32 @@ export default function Scan() {
     return "🚨 High risk phishing detected";
   };
 
-  const toggleAccordion = (key) =>
-    setOpenAccordion(openAccordion === key ? null : key);
+  /* ---------------- API CALL ---------------- */
 
-  /* ---------------- API ---------------- */
   const scanSingle = async (targetUrl, setTarget) => {
-    console.log("TOKEN:", token);
+    console.log("TOKEN FROM CONTEXT:", token);
+    console.log("TOKEN FROM STORAGE:", localStorage.getItem("token"));
+
+    // 🔥 Prevent request if token missing
+    if (!token) {
+      throw new Error("User not authenticated. Please login again.");
+    }
+
     const response = await fetch(`${API}/scan`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}` // 🔥 THIS IS THE FIX
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ url: normalizeUrl(targetUrl) }),
     });
 
-    if (!response.ok) throw new Error();
-
     const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || "Scan failed");
+    }
+
     setTarget(data);
     setScanTime(new Date().toLocaleString());
   };
@@ -61,17 +72,20 @@ export default function Scan() {
 
     try {
       await scanSingle(url, setResult);
+
       if (compareMode && url2) {
         await scanSingle(url2, setResult2);
       }
-    } catch {
-      setError("❌ Failed to scan. Check backend or login.");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "❌ Failed to scan. Check login.");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ---------------- RESULT CARD ---------------- */
+  /* ---------------- RESULT UI ---------------- */
+
   const renderResult = (data, title) => {
     const riskClass = data.risk_level.toLowerCase();
 
@@ -82,7 +96,6 @@ export default function Scan() {
         }`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
       >
         <h2>{title}</h2>
 
@@ -116,7 +129,6 @@ export default function Scan() {
             className="risk-fill"
             initial={{ width: 0 }}
             animate={{ width: `${data.probability * 100}%` }}
-            transition={{ duration: 0.8 }}
           />
         </div>
 
@@ -143,6 +155,8 @@ export default function Scan() {
       </motion.div>
     );
   };
+
+  /* ---------------- UI ---------------- */
 
   return (
     <div className="app">
