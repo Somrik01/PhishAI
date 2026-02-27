@@ -46,77 +46,85 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+  <div className="auth-container">
+    <div className="auth-card">
 
-        <h1 className="logo">PhishAI</h1>
+      <h1 className="logo">PhishAI</h1>
 
-        <p className="subtitle">
-          {isRegister ? "Create account" : "Sign in to your account"}
-        </p>
+      <p className="subtitle">
+        {isRegister ? "Create your account" : "Welcome back"}
+      </p>
 
-        <p className="muted">
-          {isRegister ? (
-            <>Already have an account? <span onClick={() => setIsRegister(false)}>Login</span></>
-          ) : (
-            <>Don’t have an account? <span onClick={() => setIsRegister(true)}>Create one</span></>
-          )}
-        </p>
+      <p className="muted">
+        {isRegister ? (
+          <>Already have an account? <span onClick={() => setIsRegister(false)}>Login</span></>
+        ) : (
+          <>Don’t have an account? <span onClick={() => setIsRegister(true)}>Sign up</span></>
+        )}
+      </p>
 
-        {error && <div className="auth-error">{error}</div>}
+      {error && <div className="auth-error">{error}</div>}
 
-        {/* FIXED GOOGLE BUTTON */}
-        <div className="google-wrapper">
-          <GoogleLogin
-            onSuccess={async (res) => {
-              const r = await fetch(`${API_BASE}/auth/google`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token: res.credential }),
-              });
+      {/* FULL WIDTH GOOGLE BUTTON */}
+      <div className="google-wrapper">
+        <GoogleLogin
+          width="100%"
+          onSuccess={async (res) => {
+            const r = await fetch(`${API_BASE}/auth/google`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token: res.credential }),
+            });
 
-              const data = await r.json();
-              login(data.access_token);
-              navigate("/");
-            }}
-          />
-        </div>
+            const data = await r.json();
+            login(data.access_token);
+            navigate("/");
+          }}
+        />
+      </div>
 
-        <div className="divider">OR</div>
+      <div className="divider"><span>OR</span></div>
 
-        <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
+
+        <input
+          className="input"
+          placeholder="Email or Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+
+        <div className="password-box">
           <input
-            placeholder="Username or Email"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            className="input"
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
-
-          {/* PASSWORD WITH EYE FIX */}
-          <div className="password-box">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <span onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? "🙈" : "👁"}
-            </span>
-          </div>
-
-          {!isRegister && (
-            <p className="forgot" onClick={() => navigate("/forgot-password")}>
-              Forgot password?
-            </p>
-          )}
-
-          <button className="primary" disabled={loading}>
-            {loading ? "Loading..." : isRegister ? "Create Account" : "Sign In"}
+          <button
+            type="button"
+            className="eye-btn"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? "Hide" : "Show"}
           </button>
-        </form>
-      </div>
+        </div>
+
+        {!isRegister && (
+          <p className="forgot" onClick={() => navigate("/forgot-password")}>
+            Forgot password?
+          </p>
+        )}
+
+        <button className="primary" disabled={loading}>
+          {loading ? "Please wait..." : isRegister ? "Create Account" : "Sign In"}
+        </button>
+      </form>
+
     </div>
-  );
+  </div>
+);
 }
