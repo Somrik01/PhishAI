@@ -37,7 +37,7 @@ init_db()
 # ----------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://phish-ai-delta.vercel.app"],
+    allow_origins=["http://localhost:5173","https://phish-ai-delta.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,6 +67,23 @@ def generate_case_id():
 @app.get("/")
 def root():
     return {"status": "PhishAI backend running 🚀"}
+
+# ----------------------------------
+# GET CURRENT USER
+# ----------------------------------
+@app.get("/auth/me")
+def get_me(user_id=Depends(get_current_user)):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, username FROM users WHERE id=?", (user_id,))
+    user = cur.fetchone()
+    conn.close()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return dict(user)
 
 # ----------------------------------
 # AUTH
@@ -122,7 +139,7 @@ def forgot_password(data: dict):
 
     return {
         "msg": "Reset link generated",
-        "reset_link": f"http://localhost:5173/reset-password/{token}"
+        "reset_link": f"http://phish-ai-delta.vercel.app/reset-password/{token}"
     }
 
 @app.post("/auth/reset-password")
