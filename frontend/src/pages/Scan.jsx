@@ -5,6 +5,7 @@ import "../App.css";
 
 export default function Scan() {
   const { token } = useContext(AuthContext);
+  const storedToken = token || localStorage.getItem("token");
 
   const [url, setUrl] = useState("");
   const [url2, setUrl2] = useState("");
@@ -47,7 +48,7 @@ export default function Scan() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${storedToken}`,
       },
       body: JSON.stringify({ url: normalizeUrl(targetUrl) }),
     });
