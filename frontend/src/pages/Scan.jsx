@@ -19,8 +19,8 @@ export default function Scan() {
   const [scanTime, setScanTime] = useState(null);
 
   const API =
-    import.meta.env.VITE_API_URL ||
-    "https://phishai-dt1h.onrender.com";
+    
+    "http://127.0.0.1:8000";
 
   /* ---------------- HELPERS ---------------- */
 
@@ -29,7 +29,7 @@ export default function Scan() {
 
   const getConfidenceLabel = (prob) => {
     if (prob < 0.3) return "✅ Safe URL (No phishing detected)";
-    if (prob < 0.7) return "⚠️ Potentially suspicious – proceed with caution";
+    if (prob < 0.7) return "⚠️ Potentially suspicious - proceed with caution";
     return "🚨 High risk phishing detected";
   };
 

@@ -1,7 +1,6 @@
 import { useAuth } from "../auth/AuthContext";
 import { useState } from "react";
 import "./Settings.css";
-const API = import.meta.env.VITE_API_URL;
 export default function Settings() {
   const { user, token } = useAuth();
   const [newEmail, setNewEmail] = useState("");
