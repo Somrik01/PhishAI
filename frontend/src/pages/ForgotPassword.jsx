@@ -5,7 +5,6 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
 
-  const API = import.meta.env.VITE_API_URL;
 
   const submit = async () => {
     setMsg("");

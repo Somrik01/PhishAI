@@ -6,7 +6,6 @@ export default function History() {
   const [cases, setCases] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetch(`${API}/cases`, {

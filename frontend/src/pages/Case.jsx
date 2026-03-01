@@ -6,7 +6,6 @@ export default function Case() {
   const { token } = useContext(AuthContext);
   const [data, setData] = useState(null);
 
-  const API = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetch(`${API}/case/${id}`, {

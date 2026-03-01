@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import "./Login.css";
 
-const API_BASE = "https://phishai-dt1h.onrender.com";
+const API_BASE = "http://127.0.0.1:8000";
 
 function extractError(data) {
   if (typeof data === "string") return data;

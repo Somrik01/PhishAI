@@ -6,7 +6,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
 
-  const API = import.meta.env.VITE_API_URL || "https://phishai-dt1h.onrender.com";
+  const API = "http://127.0.0.1:8000";
 
   // 🔥 Load token AFTER mount (fix for Vercel issue)
   useEffect(() => {

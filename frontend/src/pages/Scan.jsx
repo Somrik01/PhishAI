@@ -4,8 +4,6 @@ import { AuthContext } from "../auth/AuthContext";
 import "../App.css";
 
 export default function Scan() {
-  const { token } = useContext(AuthContext);
-  const storedToken = token || localStorage.getItem("token");
 
   const [url, setUrl] = useState("");
   const [url2, setUrl2] = useState("");
@@ -18,9 +16,7 @@ export default function Scan() {
   const [error, setError] = useState("");
   const [scanTime, setScanTime] = useState(null);
 
-  const API =
-    
-    "http://127.0.0.1:8000";
+  const API ="http://127.0.0.1:8000";
 
   /* ---------------- HELPERS ---------------- */
 
