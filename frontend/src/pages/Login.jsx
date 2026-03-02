@@ -25,6 +25,7 @@ export default function Login() {
 
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -115,27 +116,23 @@ export default function Login() {
         <div className="divider">OR</div>
 
         <form onSubmit={handleSubmit}>
+          
           <input
-            placeholder="Username or Email"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+  className="auth-input"
+  placeholder="Username or Email"
+  value={username}
+  onChange={(e) => setUsername(e.target.value)}
+  required
+/>
 
-          <div className="input-group password-group">
-  <input
-    type={showPassword ? "text" : "password"}
-    placeholder="Password"
-    className="auth-input"
-  />
-
-  <span
-    className="toggle-eye"
-    onClick={() => setShowPassword(!showPassword)}
-  >
-    {showPassword ? <FaEyeSlash /> : <FaEye />}
-  </span>
-</div>
+<input
+  className="auth-input"
+  type="password"
+  placeholder="Password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  required
+/>
 
           {!isRegister && (
             <p

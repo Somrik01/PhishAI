@@ -11,10 +11,12 @@
   max-width: 400px;
   padding: 32px;
   border-radius: 16px;
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(20px);
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
 }
+
+/* TEXT */
 
 .logo {
   text-align: center;
@@ -41,26 +43,24 @@
   cursor: pointer;
 }
 
+/* GOOGLE BUTTON FULL WIDTH */
+
 .google-wrapper {
   width: 100%;
   margin-bottom: 20px;
 }
 
-/* FORCE GOOGLE BUTTON FULL WIDTH */
 .google-wrapper div {
   width: 100% !important;
 }
+
+/* DIVIDER */
 
 .divider {
   text-align: center;
   margin: 20px 0;
   color: #6b7280;
   position: relative;
-}
-
-.divider span {
-  background: #020617;
-  padding: 0 10px;
 }
 
 .divider::before {
@@ -71,54 +71,103 @@
   background: #1f2937;
   top: 50%;
   left: 0;
-  z-index: -1;
 }
 
-.input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
+.divider span {
   background: #020617;
-  border: 1px solid #1f2a44;
-  color: white;
-  margin-bottom: 14px;
-}
-
-.input:focus {
-  border-color: #4f7cff;
-  outline: none;
-}
-
-.password-box {
+  padding: 0 10px;
   position: relative;
 }
 
-.eye-btn {
+/* INPUT GROUP */
+
+.input-group {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+/* INPUT WRAPPER (for icons) */
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* INPUT STYLE (MAIN FIX) */
+
+.auth-input {
+  width: 100%;
+  height: 45px;              /* 🔥 ADD THIS (key fix) */
+  padding: 0 14px 0 14px;   /* 🔥 REMOVE vertical padding */
+  border-radius: 10px;
+  border: 1px solid #1f2a44;
+  background: #020617;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;   /* 🔥 IMPORTANT */
+}
+
+/* LEFT ICON */
+
+.input-icon {
   position: absolute;
-  right: 10px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #4f7cff;
-  cursor: pointer;
-  font-size: 12px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
 }
+
+/* RIGHT ICON (EYE) */
+
+.toggle-eye {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-eye:hover {
+  color: #4f7cff;
+}
+
+/* FOCUS EFFECT */
+
+.input-wrapper:focus-within .input-icon {
+  color: #4f7cff;
+}
+
+.auth-input:focus {
+  border-color: #4f7cff;
+  background: #020617;
+}
+
+/* BUTTON */
 
 .primary {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border-radius: 10px;
   background: linear-gradient(90deg, #3b82f6, #2563eb);
   border: none;
   color: white;
   font-weight: 600;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 .primary:hover {
   opacity: 0.9;
 }
+
+/* ERROR */
 
 .auth-error {
   background: #3b0d0d;
@@ -129,53 +178,22 @@
   margin-bottom: 15px;
 }
 
+/* FORGOT */
+
 .forgot {
   text-align: right;
   font-size: 13px;
   color: #4f7cff;
   cursor: pointer;
-  margin-bottom: 15px;
+  margin-top: 6px;
+  margin-bottom: 14px;
 }
 
 /* MOBILE */
+
 @media (max-width: 500px) {
   .auth-card {
     margin: 10px;
     padding: 20px;
   }
-}
-.input-group {
-  width: 100%;
-  margin-bottom: 15px;
-}
-
-.auth-input {
-  width: 100%;
-  padding: 14px 45px 14px 16px; /* space for icon */
-  border-radius: 8px;
-  border: none;
-  background: #0b1220;
-  color: white;
-  font-size: 14px;
-  outline: none;
-}
-
-.password-group {
-  position: relative;
-}
-
-.toggle-eye {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #9ca3af;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.toggle-eye:hover {
-  color: white;
 }
