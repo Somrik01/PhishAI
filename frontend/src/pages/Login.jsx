@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import "./Login.css";
 
@@ -24,7 +25,7 @@ export default function Login() {
 
   const [isRegister, setIsRegister] = useState(false);
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -121,13 +122,20 @@ export default function Login() {
             required
           />
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="input-group password-group">
+  <input
+    type={showPassword ? "text" : "password"}
+    placeholder="Password"
+    className="auth-input"
+  />
+
+  <span
+    className="toggle-eye"
+    onClick={() => setShowPassword(!showPassword)}
+  >
+    {showPassword ? <FaEyeSlash /> : <FaEye />}
+  </span>
+</div>
 
           {!isRegister && (
             <p

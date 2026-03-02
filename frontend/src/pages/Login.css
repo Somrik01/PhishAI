@@ -144,3 +144,38 @@
     padding: 20px;
   }
 }
+.input-group {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 14px 45px 14px 16px; /* space for icon */
+  border-radius: 8px;
+  border: none;
+  background: #0b1220;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+
+.password-group {
+  position: relative;
+}
+
+.toggle-eye {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-eye:hover {
+  color: white;
+}
