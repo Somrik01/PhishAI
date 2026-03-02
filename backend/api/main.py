@@ -139,7 +139,7 @@ def forgot_password(data: dict):
 
     return {
         "msg": "Reset link generated",
-        "reset_link": f"http://phish-ai-delta.vercel.app/reset-password/{token}"
+        "reset_link": f"http://localhost:5173//reset-password/{token}"
     }
 
 @app.post("/auth/reset-password")

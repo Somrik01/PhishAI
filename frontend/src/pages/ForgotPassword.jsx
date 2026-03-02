@@ -4,6 +4,7 @@ import "./Login.css";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
+  const API = "http://127.0.0.1:8000";
 
 
   const submit = async () => {
