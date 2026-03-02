@@ -5,6 +5,7 @@ export default function Case() {
   const { id } = useParams();
   const { token } = useContext(AuthContext);
   const [data, setData] = useState(null);
+  const API = "http://127.0.0.1:8000";
 
 
   useEffect(() => {

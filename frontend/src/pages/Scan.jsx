@@ -11,10 +11,12 @@ export default function Scan() {
 
   const [result, setResult] = useState(null);
   const [result2, setResult2] = useState(null);
+  const [stage, setStage] = useState("idle");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [scanTime, setScanTime] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem("token"));
 
   const API ="http://127.0.0.1:8000";
 
@@ -32,54 +34,59 @@ export default function Scan() {
   /* ---------------- API CALL ---------------- */
 
   const scanSingle = async (targetUrl, setTarget) => {
-    console.log("TOKEN FROM CONTEXT:", token);
-    console.log("TOKEN FROM STORAGE:", localStorage.getItem("token"));
 
-    // 🔥 Prevent request if token missing
-    if (!token) {
-      throw new Error("User not authenticated. Please login again.");
-    }
+  if (!token) {
+    throw new Error("Missing token");
+  }
 
-    const response = await fetch(`${API}/scan`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${storedToken}`,
-      },
-      body: JSON.stringify({ url: normalizeUrl(targetUrl) }),
-    });
+  const response = await fetch(`${API}/scan`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,   // ✅ THIS FIXES IT
+    },
+    body: JSON.stringify({ url: normalizeUrl(targetUrl) }),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.detail || "Scan failed");
-    }
+  if (!response.ok) {
+    throw new Error(data.detail || "Scan failed");
+  }
 
-    setTarget(data);
-    setScanTime(new Date().toLocaleString());
-  };
+  setTarget(data);
+  setScanTime(new Date().toLocaleString());
+};
 
   const scanUrl = async () => {
-    if (!url || loading || (compareMode && !url2)) return;
+  if (!url || loading || (compareMode && !url2)) return;
 
-    setLoading(true);
-    setError("");
-    setResult(null);
-    setResult2(null);
+  setLoading(true);
+  setStage("analyzing");   // ✅ step 1
+  setError("");
+  setResult(null);
+  setResult2(null);
 
-    try {
-      await scanSingle(url, setResult);
+  try {
+    // simulate stage change
+    setTimeout(() => setStage("generating"), 800);  // ✅ step 2
 
-      if (compareMode && url2) {
-        await scanSingle(url2, setResult2);
-      }
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "❌ Failed to scan. Check login.");
-    } finally {
-      setLoading(false);
+    await scanSingle(url, setResult);
+
+    if (compareMode && url2) {
+      await scanSingle(url2, setResult2);
     }
-  };
+
+    setStage("done");
+
+  } catch (err) {
+    console.error(err);
+    setError(err.message || "❌ Failed to scan. Check login.");
+    setStage("idle");
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* ---------------- RESULT UI ---------------- */
 
@@ -184,7 +191,11 @@ export default function Scan() {
           className={loading ? "scanning" : ""}
           disabled={loading || !url || (compareMode && !url2)}
         >
-          {loading ? "Analyzing…" : "Scan"}
+          {loading
+  ? stage === "analyzing"
+    ? "Analyzing..."
+    : "Generating report..."
+  : "Scan"}
         </button>
       </div>
 

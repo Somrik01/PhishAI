@@ -8,6 +8,7 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [msg, setMsg] = useState("");
   const navigate = useNavigate();
+  const API = "http://127.0.0.1:8000";
 
 
   const reset = async () => {

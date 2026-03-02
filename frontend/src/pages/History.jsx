@@ -6,6 +6,7 @@ export default function History() {
   const [cases, setCases] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const API = "http://127.0.0.1:8000";
 
   useEffect(() => {
     fetch(`${API}/cases`, {
