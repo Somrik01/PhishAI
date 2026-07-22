@@ -5,7 +5,7 @@ from core.explain import generate_explanation
 from core.predictor import predict_url
 from core.rules import analyze_rules
 from utils.url_features import extract_features
-from db import init_db, get_db
+from db import init_db, db_session
 from auth import GOOGLE_CLIENT_ID
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -16,10 +16,20 @@ from auth import (
     create_access_token,
     get_current_user
 )
+import uuid
+import sqlite3
 import secrets
 from datetime import timedelta
 import json
 from datetime import datetime
+from utils.email import send_reset_email
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ----------------------------------
 # App Init
@@ -49,17 +59,6 @@ app.add_middleware(
 class ScanRequest(BaseModel):
     url: str
 
-# ----------------------------------
-# Helpers
-# ----------------------------------
-def generate_case_id():
-    year = datetime.now().year
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM cases")
-    count = cur.fetchone()[0] + 1
-    conn.close()
-    return f"PH-{year}-{str(count).zfill(6)}"
 
 # ----------------------------------
 # Root
@@ -73,12 +72,10 @@ def root():
 # ----------------------------------
 @app.get("/auth/me")
 def get_me(user_id=Depends(get_current_user)):
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("SELECT id, username FROM users WHERE id=?", (user_id,))
-    user = cur.fetchone()
-    conn.close()
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id, username FROM users WHERE id=?", (user_id,))
+        user = cur.fetchone()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -88,30 +85,47 @@ def get_me(user_id=Depends(get_current_user)):
 # ----------------------------------
 # AUTH
 # ----------------------------------
+from fastapi import Request  # add Request to your existing fastapi import
+
+@app.post("/auth/login")
+@limiter.limit("5/minute")
+def login(request: Request, user: UserLogin):
+    ...
+
 @app.post("/auth/register")
-def register(user: UserCreate):
-    conn = get_db()
-    cur = conn.cursor()
+@limiter.limit("5/minute")
+def register(request: Request, user: UserCreate):
+    ...
+
+@app.post("/auth/forgot-password")
+@limiter.limit("3/minute")
+def forgot_password(request: Request, data: dict):
+    ...
+
+@app.post("/auth/register")
+@limiter.limit("5/minute")
+def register(request: Request, user: UserCreate):
     try:
-        cur.execute(
-            "INSERT INTO users (username, password) VALUES (?, ?)",
-            (user.username, hash_password(user.password))
-        )
-        conn.commit()
-    except:
+        with db_session() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (user.username, hash_password(user.password))
+            )
+    except sqlite3.IntegrityError:
         raise HTTPException(status_code=400, detail="User already exists")
-    finally:
-        conn.close()
+    except Exception:
+        raise HTTPException(status_code=500, detail="Registration failed")
 
     return {"msg": "User registered successfully"}
 
 @app.post("/auth/login")
-def login(user: UserLogin):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE username=?", (user.username,))
-    db_user = cur.fetchone()
-    conn.close()
+@limiter.limit("5/minute")
+def login(request: Request, user: UserLogin):
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM users WHERE username=?", (user.username,))
+        db_user = cur.fetchone()
 
     if not db_user or not verify_password(
         user.password, db_user["password"]
@@ -122,52 +136,49 @@ def login(user: UserLogin):
     return {"access_token": token}
 
 @app.post("/auth/forgot-password")
-def forgot_password(data: dict):
+@limiter.limit("3/minute")
+def forgot_password(request: Request, data: dict):
     email = data["username"]
 
-    token = secrets.token_urlsafe(32)
-    expiry = (datetime.utcnow() + timedelta(minutes=30)).isoformat()
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE username=?", (email,))
+        user = cur.fetchone()
 
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        "UPDATE users SET reset_token=?, reset_expiry=? WHERE username=?",
-        (token, expiry, email)
-    )
-    conn.commit()
-    conn.close()
+        if user:
+            token = secrets.token_urlsafe(32)
+            expiry = (datetime.utcnow() + timedelta(minutes=30)).isoformat()
+            cur.execute(
+                "UPDATE users SET reset_token=?, reset_expiry=? WHERE username=?",
+                (token, expiry, email)
+            )
+            reset_link = f"http://localhost:5173/reset-password/{token}"
+            send_reset_email(email, reset_link)
 
-    return {
-        "msg": "Reset link generated",
-        "reset_link": f"http://localhost:5173//reset-password/{token}"
-    }
+    return {"msg": "If that account exists, a reset link has been sent."}
 
 @app.post("/auth/reset-password")
 def reset_password(data: dict):
     token = data["token"]
     new_password = hash_password(data["password"])
 
-    conn = get_db()
-    cur = conn.cursor()
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+          SELECT id FROM users
+          WHERE reset_token=? AND reset_expiry > ?
+        """, (token, datetime.utcnow().isoformat()))
 
-    cur.execute("""
-      SELECT id FROM users
-      WHERE reset_token=? AND reset_expiry > ?
-    """, (token, datetime.utcnow().isoformat()))
+        user = cur.fetchone()
 
-    user = cur.fetchone()
+        if not user:
+            raise HTTPException(400, "Invalid or expired token")
 
-    if not user:
-        raise HTTPException(400, "Invalid or expired token")
-
-    cur.execute("""
-      UPDATE users
-      SET password=?, reset_token=NULL, reset_expiry=NULL
-      WHERE id=?
-    """, (new_password, user["id"]))
-
-    conn.commit()
-    conn.close()
+        cur.execute("""
+          UPDATE users
+          SET password=?, reset_token=NULL, reset_expiry=NULL
+          WHERE id=?
+        """, (new_password, user["id"]))
 
     return {"msg": "Password updated"}
 
@@ -179,28 +190,24 @@ def google_login(data: dict):
         info = id_token.verify_oauth2_token(
             token, requests.Request(), GOOGLE_CLIENT_ID
         )
-    except:
+    except ValueError:
         raise HTTPException(401, "Invalid Google token")
 
     email = info["email"]
 
-    conn = get_db()
-    cur = conn.cursor()
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM users WHERE username=?", (email,))
+        user = cur.fetchone()
 
-    cur.execute("SELECT * FROM users WHERE username=?", (email,))
-    user = cur.fetchone()
-
-    if not user:
-        cur.execute(
-            "INSERT INTO users (username, password) VALUES (?, ?)",
-            (email, hash_password(secrets.token_urlsafe(16)))
-        )
-        conn.commit()
-        user_id = cur.lastrowid
-    else:
-        user_id = user["id"]
-
-    conn.close()
+        if not user:
+            cur.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (email, hash_password(secrets.token_urlsafe(16)))
+            )
+            user_id = cur.lastrowid
+        else:
+            user_id = user["id"]
 
     jwt_token = create_access_token({"sub": user_id})
     return {"access_token": jwt_token}
@@ -214,7 +221,11 @@ def scan_url(
     req: ScanRequest,
     user_id=Depends(get_current_user)
 ):
-    prob, label = predict_url(req.url)
+    try:
+        prob, label = predict_url(req.url)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail="Scan engine unavailable, try again later")
+
     features = extract_features(req.url)
     reasons = analyze_rules(req.url, features)
 
@@ -229,26 +240,27 @@ def scan_url(
         features
     )
 
-    case_id = generate_case_id()
+    case_id = f"PH-{datetime.now().year}-{uuid.uuid4().hex[:8].upper()}"
 
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO cases VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        case_id,
-        user_id,
-        req.url,
-        prob,
-        decision,
-        risk,
-        json.dumps(reasons),
-        explanation,
-        json.dumps(features),
-        datetime.now().isoformat()
-    ))
-    conn.commit()
-    conn.close()
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO cases (
+                case_id, user_id, url, probability, decision,
+                risk_level, reasons, explanation, features, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            case_id,
+            user_id,
+            req.url,
+            prob,
+            decision,
+            risk,
+            json.dumps(reasons),
+            explanation,
+            json.dumps(features),
+            datetime.now().isoformat()
+        ))
 
     return {
         "case_id": case_id,
@@ -266,14 +278,14 @@ def scan_url(
 # ----------------------------------
 @app.get("/cases")
 def get_user_cases(user_id=Depends(get_current_user)):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT * FROM cases WHERE user_id=? ORDER BY created_at DESC",
-        (user_id,)
-    )
-    rows = cur.fetchall()
-    conn.close()
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT * FROM cases WHERE user_id=? ORDER BY created_at DESC",
+            (user_id,)
+        )
+        rows = cur.fetchall()
+
     return [dict(r) for r in rows]
 
 # ----------------------------------
@@ -281,14 +293,13 @@ def get_user_cases(user_id=Depends(get_current_user)):
 # ----------------------------------
 @app.get("/case/{case_id}")
 def get_case(case_id: str, user_id=Depends(get_current_user)):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT * FROM cases
-        WHERE case_id=? AND user_id=?
-    """, (case_id, user_id))
-    row = cur.fetchone()
-    conn.close()
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT * FROM cases
+            WHERE case_id=? AND user_id=?
+        """, (case_id, user_id))
+        row = cur.fetchone()
 
     if not row:
         raise HTTPException(status_code=404, detail="Case not found")

@@ -20,15 +20,10 @@ def load_model():
 
 
 def predict_url(url: str):
-    try:
-        load_model()
+    load_model()  # let this raise if it fails — don't swallow it silently
 
-        X = vectorizer.transform([url])
-        prob = model.predict_proba(X)[0][1]
+    X = vectorizer.transform([url])
+    prob = model.predict_proba(X)[0][1]
 
-        label = "PHISHING" if prob > 0.5 else "BENIGN"
-        return prob, label
-
-    except Exception as e:
-        print("MODEL ERROR:", str(e))
-        return 0.0, "ERROR"
+    label = "PHISHING" if prob > 0.5 else "BENIGN"
+    return prob, label

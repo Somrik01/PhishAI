@@ -24,7 +24,7 @@ def hash_password(password: str):
 def verify_password(password: str, hash: str):
     try:
         return ph.verify(hash, password)
-    except:
+    except Exception:
         return False
 
 # ---------------- JWT ----------------

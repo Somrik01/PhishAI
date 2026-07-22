@@ -5,13 +5,23 @@ __pycache__/
 *.pyo
 *.pyd
 
+# Environment files — NEVER commit these
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
 # Node
 node_modules/
 
-# Environment files
-.env
-.env.*
-*.key
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# ML model files (optional — only if you don't want large binaries in git)
+# backend/model/*.pkl
 
 # OS junk
 .DS_Store
