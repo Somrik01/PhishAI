@@ -1,13 +1,15 @@
 import { useAuth } from "../auth/AuthContext";
 import { useState } from "react";
 import "./Settings.css";
+
+const API = import.meta.env.VITE_API_URL;
+
 export default function Settings() {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
-
-  const API = "http://127.0.0.1:8000";
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const updateEmail = async () => {
     const res = await fetch(`${API}/auth/change-email`, {
@@ -20,7 +22,12 @@ export default function Settings() {
     });
 
     const data = await res.json();
+    if (!res.ok) {
+      setMessage("❌ " + (data.detail || "Failed to update email"));
+      return;
+    }
     setMessage(data.message || "Email updated");
+    setNewEmail("");
   };
 
   const updatePassword = async () => {
@@ -34,8 +41,34 @@ export default function Settings() {
     });
 
     const data = await res.json();
+    if (!res.ok) {
+      setMessage("❌ " + (data.detail || "Failed to update password"));
+      return;
+    }
     setMessage(data.message || "Password updated");
     setNewPassword("");
+  };
+
+  const deleteAccount = async () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+
+    const res = await fetch(`${API}/auth/delete-account`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (res.ok) {
+      logout();
+    } else {
+      const data = await res.json();
+      setMessage("❌ " + (data.detail || "Failed to delete account"));
+      setConfirmDelete(false);
+    }
   };
 
   return (
@@ -51,10 +84,6 @@ export default function Settings() {
           <span>Username</span>
           <span>{user?.username}</span>
         </div>
-        <div className="settings-row">
-          <span>Email</span>
-          <span>{user?.email}</span>
-        </div>
       </div>
 
       {/* Change Email */}
@@ -66,7 +95,7 @@ export default function Settings() {
           value={newEmail}
           onChange={(e) => setNewEmail(e.target.value)}
         />
-        <button onClick={updateEmail}>Update Email</button>
+        <button onClick={updateEmail} disabled={!newEmail}>Update Email</button>
       </div>
 
       {/* Change Password */}
@@ -78,7 +107,7 @@ export default function Settings() {
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
         />
-        <button onClick={updatePassword}>Update Password</button>
+        <button onClick={updatePassword} disabled={!newPassword}>Update Password</button>
       </div>
 
       {/* Security */}
@@ -92,7 +121,9 @@ export default function Settings() {
       {/* Danger */}
       <div className="settings-card danger">
         <h2>Danger Zone</h2>
-        <button className="delete-btn">Delete My Account</button>
+        <button className="delete-btn" onClick={deleteAccount}>
+          {confirmDelete ? "Click again to confirm delete" : "Delete My Account"}
+        </button>
       </div>
     </div>
   );

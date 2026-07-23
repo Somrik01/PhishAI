@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+const API = import.meta.env.VITE_API_URL;
+
 export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -70,7 +73,6 @@ export default function Register() {
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      {/* 🔐 PASSWORD RULES PANEL */}
       <div className="password-hints">
         <p style={{ marginBottom: "6px", color: "#94a3b8" }}>
           Password must contain:

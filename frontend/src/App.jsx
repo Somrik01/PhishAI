@@ -24,6 +24,7 @@ function App() {
 
         {/* Public */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
@@ -32,7 +33,6 @@ function App() {
           <Route path="/" element={<Scan />} />
           <Route path="/history" element={<History />} />
           <Route path="/threat-intel" element={<ThreatIntel />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/case/:id" element={<Case />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

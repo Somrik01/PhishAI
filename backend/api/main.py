@@ -9,6 +9,7 @@ from db import init_db, db_session
 from auth import GOOGLE_CLIENT_ID
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from models import UserCreate, UserLogin, ChangePasswordRequest
 from models import UserCreate, UserLogin
 from auth import (
     hash_password,
@@ -213,6 +214,44 @@ def google_login(data: dict):
     jwt_token = create_access_token({"sub": user_id})
     return {"access_token": jwt_token}
 
+class ChangeEmailRequest(BaseModel):
+    email: str
+
+
+@app.post("/auth/change-email")
+def change_email(data: ChangeEmailRequest, user_id=Depends(get_current_user)):
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE username=?", (data.email,))
+        existing = cur.fetchone()
+
+        if existing and existing["id"] != user_id:
+            raise HTTPException(status_code=400, detail="Email already in use")
+
+        cur.execute("UPDATE users SET username=? WHERE id=?", (data.email, user_id))
+
+    return {"message": "Email updated successfully"}
+
+
+@app.post("/auth/change-password")
+def change_password(data: ChangePasswordRequest, user_id=Depends(get_current_user)):
+    hashed = hash_password(data.password)
+
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET password=? WHERE id=?", (hashed, user_id))
+
+    return {"message": "Password updated successfully"}
+
+
+@app.delete("/auth/delete-account")
+def delete_account(user_id=Depends(get_current_user)):
+    with db_session() as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM cases WHERE user_id=?", (user_id,))
+        cur.execute("DELETE FROM users WHERE id=?", (user_id,))
+
+    return {"message": "Account deleted"}
 
 # ----------------------------------
 # SCAN (PROTECTED)
