@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from core.explain import generate_explanation
@@ -16,20 +16,17 @@ from auth import (
     create_access_token,
     get_current_user
 )
-import uuid
-import sqlite3
+from utils.email import send_reset_email
 import secrets
+import sqlite3
+import uuid
 from datetime import timedelta
 import json
 from datetime import datetime
-from utils.email import send_reset_email
+
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ----------------------------------
 # App Init
@@ -39,6 +36,11 @@ app = FastAPI(
     description="SOC-style Phishing Detection API",
     version="2.0"
 )
+
+# Rate limiter — must come AFTER app is created
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 init_db()
 
@@ -58,7 +60,6 @@ app.add_middleware(
 # ----------------------------------
 class ScanRequest(BaseModel):
     url: str
-
 
 # ----------------------------------
 # Root
